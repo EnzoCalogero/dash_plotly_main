@@ -1,0 +1,31 @@
+version: '3'
+services:
+  database:
+    # this image can be made with `make testing/database/rails`
+    image: artifactory.enzo.net:8000/tech_view:first_edition_2018_04_23
+    container_name: database
+    expose:
+      - "5432"
+    ports:
+      - "5432:5432"
+
+  rcharts:
+    image: artifactory.enzo.net:8000/r_analitics:2018_05_02    
+    container_name: rcharts
+    links:
+      - database
+    depends_on:
+      - database
+    ports:
+     - "3838:3838"
+  nginx:
+    image: nginxfirst:latest
+    container_name: nginx
+    links:
+     - rcharts
+    depends_on:
+     - rcharts
+    expose:
+     - "80"
+    ports:
+     - "80:8080"

@@ -1,0 +1,16 @@
+[Unit]
+Description=Builder for Docker Techout images   
+After=network.target
+
+[Service]
+User=enzo
+PermissionsStartOnly=true
+ExecStart=/bin/bash  /home/enzo/dashboard-analytics/TechoutDockerBuilder/launch.sh
+TimeoutSec=600
+Restart=always
+RuntimeDirectoryMode=755
+
+[Install]
+WantedBy=multi-user.target
+
+

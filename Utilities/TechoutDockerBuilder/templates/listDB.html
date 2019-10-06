@@ -1,0 +1,11 @@
+<!doctype html>
+<title>list Customer Databases</title>
+<link rel=stylesheet type=text/css href="{{ url_for('static', filename='style.css') }}">
+<div class=page>
+  <h1>Rosetta Stone Database vs Hash</h1>
+   <br><br>
+  {% for table in tables %}
+    <h2>{{titles[loop.index]}}</h2>
+    {{ table|safe }}
+  {% endfor %}
+</div>

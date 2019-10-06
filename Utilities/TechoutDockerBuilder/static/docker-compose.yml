@@ -1,0 +1,74 @@
+
+version: '3'
+services:
+  database:
+    # this image can be made with `make testing/database/rails`
+    image: artifactory.net:8000/tech_view:db_1
+    container_name: database
+    expose:
+      - "5432"
+    ports:
+      - "5432:5432"
+  
+  backend:
+    # this image can be made with `make docker-python2`
+    #image: amd64/001-python/source:latest
+    image: artifactory.enzo.net:8000/backend:v6.0
+    container_name: backend
+    links:
+      - database
+    environment:
+      - OSIRIUM_DATABASE_URI=postgresql://postgres@database/enzo
+    command: "sleep infinity"
+
+  frontend:
+    tty: true
+    # this image can be made with `make docker-rails`
+    #image: amd64/004-rails/rails:latest
+    image: artifactory.enzo.net:8000/frontend:v6.0
+    container_name: frontend
+    links:
+      - database
+    depends_on:
+      - database
+    environment:
+      - OSIRIUM_DATABASE_URI=postgresql://postgres@database/enzo
+    ports:
+      - "3001:3001"
+    command:
+      - "bin/rails s -p 3001 -e test"
+
+  dashcharts:
+    image: artifactory.enzo.net:8000/analytics:2018_04_23
+    container_name: dashcharts
+    links:
+      - database
+    depends_on:
+      - database
+    ports:
+     - "5000:5000"
+
+  rcharts:
+    image: artifactory.enzo.net:8000/r_analytics:2018_05_02 
+    container_name: rcharts
+    links:
+      - database
+    depends_on:
+      - database
+    ports:
+     - "3838:3838"
+  
+  nginx:
+    image: artifactory.enzo.net:8000/analytic_nginx:2018_04_23
+    container_name: nginx
+    links:
+     - rcharts
+     - dashcharts
+    depends_on:
+     - rcharts
+     - dashcharts
+    expose:
+     - "80"
+    ports:
+     - "80:8080"
+

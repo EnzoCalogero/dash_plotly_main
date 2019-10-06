@@ -1,0 +1,34 @@
+version: '2'
+services:
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:6.4.0
+    container_name: elasticsearch
+    environment:
+      discovery.type: single-node
+    ports:
+      - 9200:9200
+  kibana:
+    image: docker.elastic.co/kibana/kibana:6.4.0
+    container_name: kibana
+    ports:
+     - "5601:5601"
+    links:
+     - elasticsearch
+    depends_on:
+     - elasticsearch
+    environment:
+     SERVER_NAME: "localhost"
+     ELASTICSEARCH_URL: "http://elasticsearch:9200"
+
+  logstash_serv:
+      image: artifactory.enzo.net:8000/logstash_serv:2018_08_24
+      depends_on:
+        - elasticsearch
+        - kibana
+      links:
+        - elasticsearch
+      volumes:
+        - ./logs/server/:/import
+        - ./pipeline:/usr/share/logstash/pipeline:ro
+
+

@@ -1,0 +1,81 @@
+version: '3'
+services:
+  database:
+    image: artifactory.enzo.net:8000/tech_view:first_edition_2018_08_15
+    container_name: database
+    expose:
+      - "5432"
+    ports:
+      - "5432:5432"
+
+  neo4j:
+    image: neo4j:latest
+    container_name: neo4j
+    environment:
+     - NEO4J_AUTH=none
+    volumes:
+     - ./data:/app/data
+     - ./csv_files:/import
+    expose:
+     - "7474"
+     - "7687"
+    ports:
+     - "7474:7474"
+     - "7687:7687"
+
+  importer:
+    image: artifactory.enzo.net:8000/neo4j_importer:2018_09_13
+    container_name: importer
+    depends_on:
+     - database
+     - neo4j
+    volumes:
+     - ./data:/app/data
+     - ./csv_files:/import
+    command: >
+      /bin/bash -c " sleep 15;
+      python creating_db.py;"
+
+  dashcharts:
+    image: artifactory.enzo.net:8000/analytics:2018_09_13
+    #image: artifactory.enzo.net:8000/analytics:2018_08_07local
+    container_name: dashcharts
+    volumes:
+     - ./data/current.ini:/app/data/current.ini
+    links:
+      - database
+      - neo4j
+    depends_on:
+      - database
+      - neo4j
+      - importer
+    ports:
+     - "5000:5000"
+    command: >
+      /bin/bash -c " sleep 30;
+      python3 index.py;"
+
+  rcharts:
+    image: artifactory.enzo.net:8000/r_analytics:2018_08_06
+    container_name: rcharts
+    volumes:
+     - ./data/current.ini:/srv/shiny-server/current.ini
+    links:
+      - database
+    depends_on:
+      - database
+    ports:
+     - "3838:3838"
+
+  nginx:
+    image: artifactory.enzo.net:8000/analytic_nginx:2018_08_21
+    container_name: nginx
+    links:
+     - rcharts
+     - dashcharts
+    depends_on:
+    - database
+    expose:
+     - "80"
+    ports:
+     - "80:8080"

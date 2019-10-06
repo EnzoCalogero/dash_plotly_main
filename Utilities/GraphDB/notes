@@ -1,0 +1,176 @@
+docker run --publish=7474:7474 --publish=7687:7687 --env NEO4J_AUTH=none --volume=$HOME/neo4j/import:/import --volume=$HOME/neo4j/data:/data neo4j:3.4
+
+
+# cleaning all
+MATCH (n)
+DETACH DELETE n
+
+
+DROP CONSTRAINT ON (n:Template) ASSERT n.Display_Name IS UNIQUE;
+
+#######################
+##  Start Importing  ##
+#######################
+
+# Add Constrains
+
+CREATE CONSTRAINT ON (n:User) ASSERT n.Name IS UNIQUE;
+CREATE CONSTRAINT ON (n:User) ASSERT n.Display_Name IS UNIQUE;
+
+CREATE CONSTRAINT ON (n:Group) ASSERT n.Name IS UNIQUE;
+
+CREATE CONSTRAINT ON (n:Profile) ASSERT n.Display_Name IS UNIQUE;
+CREATE CONSTRAINT ON (n:Profile) ASSERT n.Name IS UNIQUE;
+
+CREATE CONSTRAINT ON (n:Device) ASSERT n.Name IS UNIQUE;
+CREATE CONSTRAINT ON (n:Device) ASSERT n.HostName IS UNIQUE;
+
+CREATE CONSTRAINT ON (n:Task) ASSERT n.Name IS UNIQUE;
+CREATE CONSTRAINT ON (n:Task) ASSERT n.Display_Name IS UNIQUE;
+
+CREATE CONSTRAINT ON (n:Tool) ASSERT n.Name IS UNIQUE;
+CREATE CONSTRAINT ON (n:Tool) ASSERT n.Display_Name IS UNIQUE;
+
+CREATE CONSTRAINT ON (n:Template) ASSERT n.Name IS UNIQUE;
+CREATE CONSTRAINT ON (n:Template) ASSERT n.Display_Name IS UNIQUE;
+# Add Index skipp as connstrain is in place
+
+#CREATE INDEX ON :Device(Name)
+#CREATE INDEX ON :Profile(Name)
+#CREATE INDEX ON :User(Name)
+##############################################################################################################
+# Loading profiles
+
+CREATE CONSTRAINT ON (n:Profile) ASSERT n.Display_Name IS UNIQUE;
+CREATE CONSTRAINT ON (n:Profile) ASSERT n.Name IS UNIQUE;
+
+## profiles()
+
+LOAD CSV WITH HEADERS FROM  'file:///profiles.csv' AS line
+CREATE (:Profile {Name: line.name, Display_Name: line.display_name})
+
+# Lading Devices
+
+CREATE CONSTRAINT ON (n:Device) ASSERT n.Name IS UNIQUE;
+CREATE CONSTRAINT ON (n:Device) ASSERT n.HostName IS UNIQUE;
+
+## devices()
+
+LOAD CSV WITH HEADERS FROM  'file:///devices.csv' AS line
+CREATE (:Device {Name: line.name, HostName: line.hostname})
+
+# Connected profiles with devices
+
+##prof_devices()
+
+LOAD CSV WITH HEADERS FROM "file:///prof_devices.csv" AS csvLine
+MERGE (profile:Profile {Name: csvLine.profile_name,Display_Name: csvLine.prof_display })
+MERGE (device:Device {Name:  csvLine.device_name, HostName: csvLine.hostname})
+CREATE (profile)-[:Allow]->(device)
+
+# Popolate users in the Groups
+
+CREATE CONSTRAINT ON (n:User) ASSERT n.Name IS UNIQUE;
+CREATE CONSTRAINT ON (n:User) ASSERT n.Display_Name IS UNIQUE;
+
+CREATE CONSTRAINT ON (n:Group) ASSERT n.Name IS UNIQUE;
+
+## user_group()
+
+LOAD CSV WITH HEADERS FROM "file:///user_group.csv" AS csvLine
+MERGE (user:User {Name: csvLine.username, Display_Name: csvLine.userdispalyname })
+MERGE (group:Group {Name:  csvLine.group_name})
+CREATE (user)-[:Belong]->(group)
+
+
+# Link Groups to Profiles
+
+## profile_group()
+
+LOAD CSV WITH HEADERS FROM "file:///prof_group.csv" AS csvLine
+MERGE (profile:Profile {Name: csvLine.profile_name, Display_Name: csvLine.prof_display })
+MERGE (group:Group {Name:  csvLine.group_name})
+CREATE (group)-[:Linked]->(profile)
+
+# Link Users to Profiles
+
+## profile_users()
+
+LOAD CSV WITH HEADERS FROM "file:///prof_users.csv" AS csvLine
+MERGE (user:User {Name: csvLine.username, Display_Name: csvLine.userdispalyname })
+MERGE (profile:Profile {Name: csvLine.profile_name, Display_Name: csvLine.prof_display })
+CREATE (user)-[:Linked]->(profile)
+
+# Link Profiles to tasks
+
+
+## profile_tasks()
+
+CREATE CONSTRAINT ON (n:Task) ASSERT n.Name IS UNIQUE;
+CREATE CONSTRAINT ON (n:Task) ASSERT n.Display_Name IS UNIQUE;
+
+LOAD CSV WITH HEADERS FROM "file:///profile_tasks.csv" AS csvLine
+MERGE (profile:Profile {Name: csvLine.profile_name, Display_Name: csvLine.profile_display_name})
+MERGE (task:Task {Name: csvLine.task_name, Display_Name: csvLine.task_display_name})
+CREATE (profile)-[:Action]->(task)
+
+# Metadata
+
+# Metadata devices
+
+## populating_metadata_devices()
+
+# Metadata Users
+
+## populating_metadata_users()
+
+# Metadata Profiles
+
+## populating_metadata_profiles()
+
+
+##########################################################
+
+# Link Profiles with tools
+
+CREATE CONSTRAINT ON (n:Tool) ASSERT n.Name IS UNIQUE;
+CREATE CONSTRAINT ON (n:Tool) ASSERT n.Display_Name IS UNIQUE;
+
+
+## profile_tools()
+
+LOAD CSV WITH HEADERS FROM "file:///profile_tools.csv" AS csvLine
+MERGE (profile:Profile {Name: csvLine.profile_name, Display_Name: csvLine.profile_display_name})
+MERGE (tool:Tool {Name: csvLine.tool_name, Display_Name: csvLine.tool_display_name})
+CREATE (profile)-[:Action]->(tool)
+
+
+# Link templates to devices
+
+CREATE CONSTRAINT ON (n:Template) ASSERT n.Name IS UNIQUE;
+CREATE CONSTRAINT ON (n:Template) ASSERT n.Display_Name IS UNIQUE;
+
+## templates_device()
+
+LOAD CSV WITH HEADERS FROM "file:///templates_device.csv" AS csvLine
+MERGE (device:Device {Name:  csvLine.name_device, HostName: csvLine.dev_hostname})
+MERGE (template:Template {Name: csvLine.teml_name, Display_Name: csvLine.teml_display_name})
+CREATE (template)-[:Associated]->(device);
+
+# Link templates to tools
+
+## templates_tools()
+
+LOAD CSV WITH HEADERS FROM "file:///templates_tools.csv" AS csvLine
+MATCH (template:Template {Name: csvLine.devicetemplates_name, Display_Name: csvLine.devicetemplates_display_name})
+MERGE (tool:Tool {Name: csvLine.tool_name, Display_Name: csvLine.tool_display_name})
+CREATE (template)-[:Action]->(tool);
+
+# Link templates to tasks
+
+## templates_tasks()
+
+LOAD CSV WITH HEADERS FROM "file:///templates_tasks.csv" AS csvLine
+MATCH (template:Template {Name: csvLine.devicetemplates_name, Display_Name: csvLine.devicetemplates_display_name})
+MERGE (task:Task {Name: csvLine.task_name, Display_Name: csvLine.task_display_name})
+CREATE (template)-[:Action]->(task);

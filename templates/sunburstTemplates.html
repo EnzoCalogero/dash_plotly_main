@@ -1,0 +1,74 @@
+
+<!DOCTYPE html>
+<html style="height: 100%">
+   <head>
+       <meta charset="utf-8">
+   </head>
+   <body style="height: 100%; margin: 0">
+       <div id="container" style="width: 1250px;height:600px"></div>
+       <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/echarts/4.1.0/echarts-en.min.js"></script>
+
+       <script type="text/javascript">
+var dom = document.getElementById("container");
+var myChart = echarts.init(dom);
+var app = {};
+option = null;
+{% autoescape false %}
+{{data}}
+{% endautoescape %}
+
+option = {
+    title: {
+        text: 'Sunburst for the Templates Usage Frequency (last 120 Days)',
+        textStyle: {
+            fontSize: 16,
+            fontFamily:'Glacial Indifference',
+            color: '#253471',
+            align: 'center'
+        },
+    },
+    series: {
+        type: 'sunburst',
+        data: data,
+        radius: [0, '100%'],
+                levels: [{}, {
+            r0: '3%',
+            r: '21%',
+            itemStyle: {
+                borderWidth: 2
+            },
+            label: {
+                rotate: 'tangential',
+                fontFamily:'Glacial Indifference',
+            }
+        }, {
+            r0: '23%',
+            r: '41%',
+            label: {
+                align: 'right',
+                fontFamily:'Glacial Indifference',
+            }
+        }, {
+            r0: '43%',
+            r: '61%',
+            label: {
+                position: 'outside',
+                padding: 0,
+                silent: false,
+                color:'#253471',
+                fontFamily:'Glacial Indifference',
+                
+            },
+            itemStyle: {
+                borderWidth: 3
+            }
+        }]
+    }
+};
+
+if (option && typeof option === "object") {
+    myChart.setOption(option, true);
+}
+       </script>
+   </body>
+</html>

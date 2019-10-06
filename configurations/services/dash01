@@ -1,0 +1,17 @@
+[Unit]
+Description=Gunicorn instance to serve dash01
+After=network.target
+Requires=docker.service
+
+
+[Service]
+User=enzo
+Group=www-data
+WorkingDirectory=/home/enzo/dash01/dash01
+Environment="PATH=/home/enzo/dash01/dash01/bin"
+ExecStart=/home/enzo/dash01/dash01/bin/gunicorn --workers 2 --bind unix:dash01.sock -m 007 index:server
+
+
+[Install]
+WantedBy=multi-user.target
+

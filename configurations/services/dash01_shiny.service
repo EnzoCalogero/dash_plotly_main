@@ -1,0 +1,17 @@
+[Unit]
+Description= service instance to serve dash01 shiny
+After=network.target
+Requires=docker.service
+
+
+[Service]
+User=enzo
+Group=www-data
+WorkingDirectory=/home/enzo/R_Codes/shinyNetwork01
+Environment="PATH=/usr/bin/R"
+ExecStart= /usr/bin/Rscript /home/enzo/R_Codes/shinyNetwork01/app.R
+
+
+[Install]
+WantedBy=multi-user.target
+

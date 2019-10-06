@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html style="height: 100%">
+   <head>
+       <meta charset="utf-8">
+   </head>
+   <body style="height: 100%; margin: 0">
+       <div id="container" style="height: 100%"></div>
+       <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/echarts/4.1.0/echarts-en.min.js"></script>
+       <script type="text/javascript">
+var dom = document.getElementById("container");
+var myChart = echarts.init(dom);
+var app = {};
+option = null;
+
+option = {
+         title: {
+            text: '{{title_}}',
+            textStyle: {
+               fontSize: 16,
+               fontFamily:'Glacial Indifference',
+               color: '#253471',
+               align: 'center'
+               },
+         },
+
+    tooltip: {
+        trigger: 'axis',
+        axisPointer: {
+            type: 'line',
+            lineStyle: {
+                color: 'rgba(0,0,0,0.2)',
+                width: 1,
+                type: 'solid'
+            }
+        }
+    },
+
+    singleAxis: {
+        top: 50,
+        bottom: 50,
+        axisTick: {},
+        axisLabel: {},
+        type: 'time',
+        axisPointer: {
+            animation: true,
+            label: {
+                show: true
+            }
+        },
+        splitLine: {
+            show: true,
+            lineStyle: {
+                type: 'dashed',
+                opacity: 0.2
+            }
+        }
+    },
+
+    series: [
+        {
+            type: 'themeRiver',
+            label: {normal: {show:false}},
+
+            itemStyle: {
+                emphasis: {
+                    shadowBlur: 20,
+                    shadowColor: 'rgba(0, 0, 0, 0.8)'
+                }
+            },
+            {% autoescape false %}
+            data:{{tstasks}}
+            {% endautoescape %}
+        }
+    ]
+};;
+if (option && typeof option === "object") {
+    myChart.setOption(option, true);
+}
+       </script>
+   </body>
+</html>

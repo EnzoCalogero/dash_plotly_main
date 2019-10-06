@@ -1,0 +1,28 @@
+version: '3'
+services:
+  neo4j:
+    image: neo4j:latest
+    container_name: neo4j
+    environment:
+     - NEO4J_AUTH=none
+    volumes:
+     - ./data:/app/data
+     - ./csv_files:/import
+    expose:
+     - "7474"
+     - "7687"
+    ports:
+     - "7474:7474"
+     - "7687:7687"
+
+  importer:
+    image: artifactory.enzo.net:8000/neo4j_importer:2018_08_23
+    container_name: importer
+    depends_on:
+     - neo4j
+    volumes:
+     - ./data:/app/data
+     - ./csv_files:/import
+    command: >
+      /bin/bash -c " sleep 30;
+      python creating_db.py;"

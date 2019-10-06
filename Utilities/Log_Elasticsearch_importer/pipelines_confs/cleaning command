@@ -1,0 +1,6 @@
+sed -i 's/[^[:print:]]//;s/'\''//g;s/&apos;//g' test_WARM.txt
+
+
+-------------------------------------------------------------------------------
+match => { "message" => "(?<month>.{3}) (?<day_>.{2}) %{TIME:time_log} %{SYSLOGHOST:syslog_hostname} %{WORD:log_fileName}: %{LOGLEVEL:log-level} \[%{DATA:Source}\] %{GREEDYDATA:message_redux} %{NUMBER:process_time}s"}
+

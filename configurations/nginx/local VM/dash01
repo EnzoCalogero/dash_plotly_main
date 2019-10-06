@@ -1,0 +1,22 @@
+server {
+    listen 80;
+    server_name 192.168.150.134;
+
+location / {
+        include proxy_params;
+        proxy_pass http://unix:/home/enzo/dash01/dash01/dash01.sock;
+    }
+
+ location /graphs {
+      rewrite ^/graphs/(.*)$ /$1 break;
+      proxy_pass http://localhost:3838;
+      proxy_redirect http://localhost:3838/ $scheme://$host/graphs;
+      proxy_http_version 1.1;
+      proxy_set_header Upgrade $http_upgrade;
+      proxy_set_header Connection $connection_upgrade;
+      proxy_read_timeout 20d;
+      proxy_buffering off;
+    }
+}
+
+
